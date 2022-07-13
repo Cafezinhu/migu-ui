@@ -1,6 +1,10 @@
-import { Container, DisplayObject, Graphics } from "pixi.js";
+import { DisplayObject, Graphics } from "pixi.js";
+import { Anchor } from "./types/Anchor";
+import { UIPoint } from "./types/UIPoint";
 
 export type UIElementOptions = {
+    relativePositionToAnchor?: UIPoint;
+    anchor?: Anchor;
     color: number;
     alpha?: number;
     height?: number;
@@ -32,6 +36,11 @@ export class UIElement extends Graphics{
         super();
         this.options = options;
         this.draw();
+        
+        if(!options.anchor) 
+            this.options.anchor = 'top left';
+        if(!options.relativePositionToAnchor) 
+            this.options.relativePositionToAnchor = {x: 0, y: 0};
     }
 
     setContent(content: DisplayObject){
@@ -103,8 +112,6 @@ export class UIElement extends Graphics{
             );
             this.endFill();
         }
-
-        
 
         this.beginFill(this.options.color);
         this.drawRoundedRect(offset, offset, 

@@ -1,0 +1,1 @@
+export type UIPoint = {x: number, y: number};

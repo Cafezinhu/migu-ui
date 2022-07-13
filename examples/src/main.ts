@@ -3,13 +3,14 @@ import './style.css';
 import { MiguUI, UIElement } from '../../src/index';
 import coffee from '../coffee.png';
 async function load(){
-  const app = new Application({width: window.innerWidth, height: window.innerHeight});
+  const app = new Application({resizeTo: window});
   document.body.appendChild(app.view);
 
   app.stage.filters = [new filters.FXAAFilter()];
 
-  const ui = new MiguUI(app.stage, {width: app.view.width, height: app.view.height});
+  const ui = new MiguUI(app.stage, app.view);
   const element = new UIElement({
+    anchor: 'bottom right',
     color: 0xff0000,  
     radius: 20, 
     border: {
@@ -20,14 +21,16 @@ async function load(){
   });
   const texture = await Texture.fromURL(coffee);
   element.setContent(new Sprite(texture));
-  ui.addChild(element);
+  ui.addElement(element);
 
   window.addEventListener('resize', resize);
 
   function resize(){
-    app.view.height = window.innerHeight;
-    app.view.width = window.innerWidth;
+    app.resize();
+    ui.update();
   }
+
+  document.addEventListener('fullscreenchange', resize);
 }
 
 load();
