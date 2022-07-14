@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { Anchor, anchorToPosition } from "./types/Anchor";
+import { anchorToPosition } from "./types/Anchor";
 import { UIElement } from "./UIElement";
 
 export class MiguUI extends Container{

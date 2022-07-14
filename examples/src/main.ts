@@ -1,6 +1,6 @@
 import { Application, filters, Sprite, Texture } from 'pixi.js';
 import './style.css';
-import { MiguUI, UIElement } from '../../src/index';
+import { Button, MiguUI, UIElement } from '../../src/index';
 import coffee from '../coffee.png';
 async function load(){
   const app = new Application({resizeTo: window});
@@ -9,7 +9,7 @@ async function load(){
   app.stage.filters = [new filters.FXAAFilter()];
 
   const ui = new MiguUI(app.stage, app.view);
-  const element = new UIElement({
+  const element = new Button({
     anchor: 'bottom right',
     color: 0xff0000,  
     radius: 20, 
@@ -17,7 +17,8 @@ async function load(){
       color: 0x0000ff, 
       thickness: 10
     },
-    padding: 20
+    padding: 20,
+    onClick: () => console.log('clicked!')
   });
   const texture = await Texture.fromURL(coffee);
   element.setContent(new Sprite(texture));
