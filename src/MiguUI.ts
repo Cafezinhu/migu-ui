@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { anchorToPosition } from "./types/Anchor";
+import { anchorToNormalizedPoint, anchorToPoint } from "./types/Anchor";
 import { UIElement } from "./UIElement";
 
 export class MiguUI extends Container{
@@ -14,14 +14,10 @@ export class MiguUI extends Container{
     }
 
     addElement(element: UIElement, adjustPivot = true){
-        const anchor = anchorToPosition(element.options.anchor);
         if(adjustPivot){
             const elementBounds = element.getBounds();
             
-            element.pivot = {
-                x: anchor.x * elementBounds.width, 
-                y: anchor.y * elementBounds.height
-            }
+            element.pivot = anchorToPoint(element.options.anchor, elementBounds);
         }
         this.repositionElement(element);
         this.addChild(element);
@@ -33,7 +29,7 @@ export class MiguUI extends Container{
     }
 
     repositionElement(element: UIElement){
-        const anchor = anchorToPosition(element.options.anchor);
+        const anchor = anchorToNormalizedPoint(element.options.anchor);
 
         const xPos = (this.canvas.width * anchor.x + element.options.relativePositionToAnchor.x) * this.parent.scale.x;
         const yPos = (this.canvas.height * anchor.y + element.options.relativePositionToAnchor.y) * this.parent.scale.y;
