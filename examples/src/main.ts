@@ -1,7 +1,8 @@
 import { Application, filters, Sprite, Texture } from 'pixi.js';
 import './style.css';
-import { Button, MiguUI, UIElement } from '../../src/index';
+import { Button, MiguUI } from '../../src/index';
 import coffee from '../coffee.png';
+import google from '../google.png';
 async function load(){
   const app = new Application({resizeTo: window});
   document.body.appendChild(app.view);
@@ -10,7 +11,9 @@ async function load(){
 
   const ui = new MiguUI(app.stage, app.view);
   const element = new Button({
-    anchor: 'bottom right',
+    anchor: 'left',
+    contentDirection: 'column',
+    crossAlignment: 'start',
     color: 0xff0000,  
     radius: 20, 
     border: {
@@ -20,8 +23,9 @@ async function load(){
     padding: 20,
     onClick: () => console.log('clicked!')
   });
-  const texture = await Texture.fromURL(coffee);
-  element.setContent(new Sprite(texture));
+  const coffeeTexture = await Texture.fromURL(coffee);
+  const googleTexture = await Texture.fromURL(google);
+  element.addContent([new Sprite(coffeeTexture), new Sprite(googleTexture)]);
   ui.addElement(element);
 
   window.addEventListener('resize', resize);

@@ -1,5 +1,5 @@
 import { DisplayObject, Graphics } from "pixi.js";
-import { Anchor } from "./types/Anchor";
+import { Anchor, anchorToNormalizedPoint, anchorToPoint } from "./types/Anchor";
 import { UIPoint } from "./types/UIPoint";
 
 export type UIElementOptions = {
@@ -11,6 +11,8 @@ export type UIElementOptions = {
     width?: number;
     radius?: number;
     border?: Border;
+    contentDirection?: 'column' | 'row';
+    crossAlignment?: 'start' | 'center' | 'end';
     padding?: {
         vertical: {
             top: number;
@@ -30,7 +32,7 @@ export type Border = {
 
 export class UIElement extends Graphics{
     options: UIElementOptions;
-    content?: DisplayObject;
+    content: DisplayObject[] = [];
 
     constructor(options?: UIElementOptions){
         super();
@@ -41,18 +43,24 @@ export class UIElement extends Graphics{
             this.options.anchor = 'top left';
         if(!options.relativePositionToAnchor) 
             this.options.relativePositionToAnchor = {x: 0, y: 0};
+        if(!options.contentDirection)
+            this.options.contentDirection = 'column';
+        if(!options.crossAlignment)
+            options.crossAlignment = 'center';
+
     }
 
-    setContent(content: DisplayObject){
-        this.content?.destroy();
-        this.content = content;
-        this.addChild(content);
+    addContent(children: DisplayObject[]){
+        this.addChild(...children);
+        this.content.push(...children);
         this.draw();
     }
+    
 
     draw(){
         if(!this.options) return;
         let offset = 0;
+        const {contentDirection, crossAlignment} = this.options;
 
         const padding = this.options.padding;
         let width = this.options.width ? this.options.width : 0;
@@ -91,15 +99,71 @@ export class UIElement extends Graphics{
 
         const border = this.options.border;
 
-        if(this.content){
-            const contentBounds = this.content.getLocalBounds();
-            width += contentBounds.width;
-            height += contentBounds.height;
+        let crossDirectionSize = 0;
+        
 
-            const borderThickness = (border ? border.thickness : 0)
-            this.content.x = borderThickness + leftPadding;
-            this.content.y = borderThickness + topPadding;
+        this.content.forEach(element => {
+            const contentBounds = element.getLocalBounds();
+            if(contentDirection == 'column'){
+                height += contentBounds.height;
+                if(crossDirectionSize < contentBounds.width)
+                    crossDirectionSize = contentBounds.width;
+            }else{
+                width += contentBounds.width;
+                if(crossDirectionSize < contentBounds.height)
+                    crossDirectionSize = contentBounds.height;
+            }
+
+            if(contentDirection == 'row'){
+                if(crossAlignment == 'center')
+                    element.pivot = anchorToPoint('left', contentBounds);
+                else if(crossAlignment == 'end')
+                    element.pivot = anchorToPoint('bottom left', contentBounds);
+            }else{
+                if(crossAlignment == 'center')
+                    element.pivot = anchorToPoint('top', contentBounds);
+                else if(crossAlignment == 'end')
+                    element.pivot = anchorToPoint('top right', contentBounds);
+            }
+        });
+
+        if(contentDirection == 'column')
+            width += crossDirectionSize;
+        else
+            height += crossDirectionSize;
+
+        const borderThickness = border ? border.thickness : 0;
+        let lastPoint: UIPoint = {x: borderThickness + leftPadding, y: borderThickness + topPadding};
+
+        if(contentDirection == 'row'){
+            if(crossAlignment == 'center')
+                lastPoint.y += crossDirectionSize / 2;
+            else if(crossAlignment == 'end')
+                lastPoint.y += crossDirectionSize;
+        }else{
+            if(crossAlignment == 'center')
+                lastPoint.x += crossDirectionSize / 2;
+            else if(crossAlignment == 'end')
+                lastPoint.x += crossDirectionSize;
         }
+
+        this.content.forEach(element => {
+            
+
+            console.log(element.pivot);
+            
+
+            element.x = lastPoint.x;
+            element.y = lastPoint.y;
+            const bounds = element.getBounds();
+
+            if(contentDirection == 'row')
+                lastPoint.x = element.x + bounds.width;
+            else
+                lastPoint.y = element.y + bounds.height;
+            console.log(lastPoint);
+        });
+        
 
         if(border){
             offset = border.thickness;
