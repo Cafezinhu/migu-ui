@@ -13,7 +13,8 @@ async function load(){
   const element = new Button({
     anchor: 'left',
     contentDirection: 'column',
-    crossAlignment: 'start',
+    crossAlignment: 'center',
+    gap: 20,
     color: 0xff0000,  
     radius: 20, 
     border: {

@@ -1,5 +1,5 @@
 import { DisplayObject, Graphics } from "pixi.js";
-import { Anchor, anchorToNormalizedPoint, anchorToPoint } from "./types/Anchor";
+import { Anchor, anchorToPoint } from "./types/Anchor";
 import { UIPoint } from "./types/UIPoint";
 
 export type UIElementOptions = {
@@ -11,6 +11,7 @@ export type UIElementOptions = {
     width?: number;
     radius?: number;
     border?: Border;
+    gap?: number;
     contentDirection?: 'column' | 'row';
     crossAlignment?: 'start' | 'center' | 'end';
     padding?: {
@@ -47,7 +48,8 @@ export class UIElement extends Graphics{
             this.options.contentDirection = 'column';
         if(!options.crossAlignment)
             options.crossAlignment = 'center';
-
+        if(!options.gap)
+            options.gap = 0;
     }
 
     addContent(children: DisplayObject[]){
@@ -56,11 +58,10 @@ export class UIElement extends Graphics{
         this.draw();
     }
     
-
     draw(){
         if(!this.options) return;
         let offset = 0;
-        const {contentDirection, crossAlignment} = this.options;
+        const {contentDirection, crossAlignment, gap} = this.options;
 
         const padding = this.options.padding;
         let width = this.options.width ? this.options.width : 0;
@@ -101,15 +102,15 @@ export class UIElement extends Graphics{
 
         let crossDirectionSize = 0;
         
-
-        this.content.forEach(element => {
+        this.content.forEach((element, index) => {
+            const gapping = index != 0 ? gap : 0;
             const contentBounds = element.getLocalBounds();
             if(contentDirection == 'column'){
-                height += contentBounds.height;
+                height += contentBounds.height + gapping;
                 if(crossDirectionSize < contentBounds.width)
                     crossDirectionSize = contentBounds.width;
             }else{
-                width += contentBounds.width;
+                width += contentBounds.width + gapping;
                 if(crossDirectionSize < contentBounds.height)
                     crossDirectionSize = contentBounds.height;
             }
@@ -147,21 +148,20 @@ export class UIElement extends Graphics{
                 lastPoint.x += crossDirectionSize;
         }
 
-        this.content.forEach(element => {
-            
-
-            console.log(element.pivot);
-            
-
+        this.content.forEach((element, index) => {
+            const gapping = index != 0 ? gap : 0;
             element.x = lastPoint.x;
             element.y = lastPoint.y;
+
             const bounds = element.getBounds();
 
-            if(contentDirection == 'row')
-                lastPoint.x = element.x + bounds.width;
-            else
-                lastPoint.y = element.y + bounds.height;
-            console.log(lastPoint);
+            if(contentDirection == 'row'){
+                lastPoint.x = element.x + bounds.width + gapping;
+                element.x += gapping;
+            }else{
+                lastPoint.y = element.y + bounds.height + gapping;
+                element.y += gapping;
+            }
         });
         
 
